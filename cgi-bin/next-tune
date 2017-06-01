@@ -1,0 +1,33 @@
+#!/bin/bash
+
+echo "Content-type: application/json"
+echo ""
+
+artist=`./merge-tunes | ./calc-artist-ratings | grep "Random artist:" | sed 's/Random artist: //'`
+tune_local=`find "/var/www/music/$artist" | grep -P "\.mp3$" | sort -R | head -n 1`
+tune_short=`echo $tune_local | sed "s!^/var/www/music/$artist/!!" | sed 's!.mp3$!!'`
+url="http://$SERVER_NAME/"`echo $tune_local | sed 's!^/var/www/!!'`
+raw_title=`echo $tune_short | sed 's!^.\+/!!'`
+title=`echo $raw_title | sed 's!^[0-9][0-9]\+ *[_\.\-]* *!!'`
+
+echo $tune_short | grep '/' > /dev/null
+
+if [ $? == 0 ]; then
+  album=`echo $tune_short | sed -e "s!/$raw_title!!" -e "s!^[0-9]\. *!!" -e "s!/! | !g"`
+else
+  album=$artist
+fi
+
+tune_time=`mp3info -p "%S" "$tune_local"`
+
+cat << JSON 
+{
+  "QUERY_STRING":"$QUERY_STRING",
+  "url":"$url",
+  "artist":"$artist",
+  "album":"$album",
+  "title":"$title",
+  "time": "$tune_time",
+  "filename": "$tune_local"
+}
+JSON

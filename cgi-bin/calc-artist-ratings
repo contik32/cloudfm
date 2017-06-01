@@ -1,0 +1,40 @@
+#!/usr/bin/python
+# stdin input: <number of tracks> <artist>
+
+import sys
+import random
+import bisect
+
+artist_list = []
+
+for line in sys.stdin:
+    (tunes, artist) = line.strip().split(' ', 1)
+    artist_record = {'artist':artist, 'tunes':int(tunes)}
+    artist_list.append(artist_record)
+
+total_tunes = sum(item['tunes'] for item in artist_list)
+total_artists = len(artist_list)
+avg_tunes_per_artist = float(total_tunes) / total_artists
+avg_tunes_per_artist_percent = avg_tunes_per_artist / total_tunes
+
+print "Total tunes:", total_tunes
+print "Total artists:", total_artists
+print "Average tunes/artist: {:.1f} ({:.2%})".format(avg_tunes_per_artist, avg_tunes_per_artist_percent)
+
+for ar in artist_list:
+    ar['tunes_percent'] = float(ar['tunes']) / total_tunes
+    ar['tunes_percent_adj'] = (ar['tunes_percent'] + avg_tunes_per_artist_percent) / 2
+
+for ar in artist_list:
+    print '{:2.2%} | {:2.2%} | {:4} | {:}'.format(ar['tunes_percent_adj'], ar['tunes_percent'], ar['tunes'], ar['artist'])
+
+artist_name_list = [ar['artist'] for ar in artist_list]
+artist_weight_list = [int(ar['tunes_percent_adj'] * 10000) for ar in artist_list]
+
+cumdist = list()
+cumdist.append(artist_weight_list[0])
+for w in artist_weight_list[1:]:
+    cumdist.append(cumdist[-1] + w)
+
+rnd_cumdist = random.random() * cumdist[-1]
+print "Random artist:", artist_name_list[bisect.bisect(cumdist, rnd_cumdist)]

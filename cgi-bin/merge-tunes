@@ -1,0 +1,11 @@
+#!/bin/bash
+
+for a in /var/www/music/*; do 
+  find "$a" | 
+    grep -P -i '\.mp3$' | 
+    sed 's!^/var/www/music/.\+/!!;s!\.mp3$!!i;s![^A-Za-zАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧшщЪЬЫЭЮЯабвгдежзийклмнопрстуфхцчшщъьыэюя]!!g' | 
+    sort | 
+    uniq |
+    echo `wc -l` `echo $a | sed 's!/var/www/music/!!'` |
+    grep -v -P "^0 "
+done

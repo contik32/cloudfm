@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo -e "Content-Type: audio/mpeg\r\n\r\n"
+#echo -e "Content-Type: text/html\r\n\r\n"
+
+#file /home/slava/test.mp3
+tunefile=`urlencode -d $QUERY_STRING`
+fileinfo=`file "$tunefile"`
+echo "$tunefile" > /var/tmp/query_string 
+echo "$fileinfo" >> /var/tmp/query_string 
+lame -abr -V 9 -q 9 "$tunefile" -
+
+#echo "$QUERY_STRING" > /var/tmp/query_string
+#tune_file=/var/www`urlencode -d $tune_enc`
+
+#if [ `echo "$tune_file" | grep -P -i "\.mp3$"` ]; then 
+#    lame -abr -V 9 -q 9 "$tune_file" -
+#else
+#    cat "$tune_file"
+#fi
+

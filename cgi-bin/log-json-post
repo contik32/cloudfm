@@ -1,0 +1,6 @@
+#!/bin/bash
+echo -e "Content-type: text/html\r\n\r\n"
+postdata=`cat -`
+jsondata=`echo $postdata | jq -c '.'`
+echo '{'\"srvtime\":\"`date +"%F %T.%N"`\",\"evdata\":$jsondata'}' >> /media/2tb/media/statdb/events.log
+

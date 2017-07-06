@@ -183,6 +183,18 @@
           }
 
           console.log(player.src);
+
+          $.ajax({
+            url: "/cgi-bin/log-json-post",
+            method: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({
+              "usrtime": new Date().toJSON(),
+              "user": $("#user_button").data("username"),
+              "event": "next_tune",
+              "url": tune.url
+            })
+          });
         });
       };
 
@@ -229,7 +241,12 @@
       }
 
       function test_ctl() {
-        $.get("/cgi-bin/test", {"TEST1": 1, "TEST2": "2", "TEST3": {"t1": "3", "t2": [4, 5]}});
+        $.ajax({
+          url: "/cgi-bin/test",
+          method: "POST",
+          contentType: "application/json; charset=utf-8",
+          data: JSON.stringify({"TEST1": 1, "TEST2": "2", "TEST3": {"t1": "3", "t2": [4, 5, 6]}})
+        });
       }
 
       function show_login_dialog() {

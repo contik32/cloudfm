@@ -1,7 +1,10 @@
 #!/bin/bash
+
+fstats=/media/2tb/media/stats/test
+
 echo -e "Content-type: text/html\r\n\r\n"
 
-cat > /tmp/test.out << EOD
+cat >> $fstats << EOD
 DOCUMENT_ROOT   $DOCUMENT_ROOT
 HTTP_COOKIE     $HTTP_COOKIE
 HTTP_HOST       $HTTP_HOST
@@ -23,3 +26,6 @@ SERVER_NAME     $SERVER_NAME
 SERVER_PORT     $SERVER_PORT
 SERVER_SOFTWARE $SERVER_SOFTWARE
 EOD
+
+echo POST data >> $fstats
+cat - >> $fstats

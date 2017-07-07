@@ -172,7 +172,7 @@
             player.src = tune.url;
           }
 
-          log_event("next_tune", tune.url);
+          log_event({"name":"tune_next"}, tune.url);
         });
       };
 
@@ -187,6 +187,7 @@
       }
 
       function skip_ctl() {
+        log_event({"name":"tune_skip","played":parseFloat((player.currentTime/player.duration).toFixed(3))}, $("#url_href").text());
         set_next_tune();
       }
 
@@ -252,7 +253,7 @@
         }
       }
 
-      function log_event(evname, url) {
+      function log_event(evobj, url) {
         $.ajax({
           url: "/cgi-bin/log-json-post",
           method: "POST",
@@ -260,7 +261,7 @@
           data: JSON.stringify({
             "usrtime": new Date().toJSON(),
             "user": $("#user_button").data("username"),
-            "event": evname,
+            "event": evobj,
             "url": url
           })
         })

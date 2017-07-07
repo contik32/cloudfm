@@ -159,16 +159,6 @@
         $("#time").text("");
 
         $.getJSON("/cgi-bin/next-tune", function(tune){
-          console.log("JSON request done");
-          
-          console.log(document.location.hostname);
-          console.log(tune.url);
-          console.log(tune.artist);
-          console.log(tune.album);
-          console.log(tune.title);
-          console.log(tune.time);
-          console.log(tune.filename);
-
           $("#artist").text(tune.artist);
           $("#album").text(tune.album);
           $("#title").text(tune.title);
@@ -182,19 +172,7 @@
             player.src = tune.url;
           }
 
-          console.log(player.src);
-
-          $.ajax({
-            url: "/cgi-bin/log-json-post",
-            method: "POST",
-            contentType: "application/json; charset=utf-8",
-            data: JSON.stringify({
-              "usrtime": new Date().toJSON(),
-              "user": $("#user_button").data("username"),
-              "event": "next_tune",
-              "url": tune.url
-            })
-          });
+          log_event("next_tune", tune.url);
         });
       };
 
@@ -272,6 +250,20 @@
           $("#logout_button").removeClass("disabled");
           Cookies.set('username', username, {expires: 365});
         }
+      }
+
+      function log_event(evname, url) {
+        $.ajax({
+          url: "/cgi-bin/log-json-post",
+          method: "POST",
+          contentType: "application/json; charset=utf-8",
+          data: JSON.stringify({
+            "usrtime": new Date().toJSON(),
+            "user": $("#user_button").data("username"),
+            "event": evname,
+            "url": url
+          })
+        })
       }
 
       $(on_dom_loaded);

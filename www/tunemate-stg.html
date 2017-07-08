@@ -28,6 +28,9 @@
       <button id="mobile_button" type="button" class="btn btn-default" onclick="mobile_ctl()" data-state="off" data-toggle="popover" data-content="Mobile">
         <span id="mobile_icon" class="glyphicon glyphicon-signal"></span>
       </button>
+      <button id="player_button" type="button" class="btn btn-success" onclick="player_ctl()" data-state="on" data-toggle="popover" data-content="Player">
+        <i class="fa fa-gear" aria-hidden="true"></i>
+      </button>
       <button id="test_button" type="button" class="btn btn-default" onclick="test_ctl()">
         <span id="test_icon" class="glyphicon glyphicon-wrench"></span>
       </button>
@@ -106,6 +109,13 @@
           $("#mobile_button").data("state", "on");
           $("#mobile_button").removeClass("btn-default");
           $("#mobile_button").addClass("btn-success");
+        }
+
+        if (Cookies.get("player") == "off") {
+          player.controls = false;
+          $("#player_button").data("state", "off");
+          $("#player_button").removeClass("btn-success");
+          $("#player_button").addClass("btn-default");
         }
 
         if (Cookies.get("username") != "") {
@@ -216,6 +226,22 @@
           $("#mobile_button").removeClass("btn-success");
           $("#mobile_button").addClass("btn-default");
           Cookies.set('mobile', 'off', {expires: 365});
+        }
+      }
+
+      function player_ctl() {
+        if ($("#player_button").data("state") === "off") {
+          player.controls = true;
+          $("#player_button").data("state", "on");
+          $("#player_button").removeClass("btn-default");
+          $("#player_button").addClass("btn-success");
+          Cookies.set('player', 'on', {expires: 365});
+        } else {
+          player.controls = false;
+          $("#player_button").data("state", "off");
+          $("#player_button").removeClass("btn-success");
+          $("#player_button").addClass("btn-default");
+          Cookies.set('player', 'off', {expires: 365});
         }
       }
 

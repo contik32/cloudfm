@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Tune Mate</title>
+
+    <!-- Bootstrap -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" rel="stylesheet">
+    <!-- Fontawesome -->
+    <script src="https://use.fontawesome.com/65cce83ce3.js"></script>
+  </head>
+  <body>
+    <div id="audio_div"><audio id="audio_player" controls></audio></div>
+    <div class="btn-group">
+      <button id="play_pause_button" type="button" class="btn btn-default" onclick="play_pause_ctl()" data-state="pause" data-toggle="popover" data-content="Play/Pause">
+        <span id="play_pause_icon" class="glyphicon glyphicon-play"></span>
+      </button>
+      <button id="autoplay_button" type="button" class="btn btn-default" onclick="autoplay_ctl()" data-state="off" data-toggle="popover" data-content="Autoplay">
+        <span id="autoplay_icon" class="glyphicon glyphicon-play-circle"></span>
+      </button>
+      <button id="user_button" type="button" class="btn btn-default" onclick="show_login_dialog()" data-username="" data-toggle="popover" data-content="Login">
+        <i class="fa fa-user-o" aria-hidden="true"></i>
+      </button>
+      <button id="mobile_button" type="button" class="btn btn-default" onclick="mobile_ctl()" data-state="off" data-toggle="popover" data-content="Mobile">
+        <span id="mobile_icon" class="glyphicon glyphicon-signal"></span>
+      </button>
+      <button id="player_button" type="button" class="btn btn-success" onclick="player_ctl()" data-state="on" data-toggle="popover" data-content="Player">
+        <i class="fa fa-gear" aria-hidden="true"></i>
+      </button>
+      <button id="test_button" type="button" class="btn btn-default" onclick="test_ctl()">
+        <span id="test_icon" class="glyphicon glyphicon-wrench"></span>
+      </button>
+      <button id="skip_button" type="button" class="btn btn-primary" onclick="skip_ctl()" data-toggle="popover" data-content="Skip">
+        <span id="skip_icon" class="glyphicon glyphicon-fast-forward"></span>
+      </button>
+    </div>
+    <p></p>
+    <p><h4><span class="glyphicon glyphicon-music">&nbsp;<b><span id="title" style="font-family:verdana">title</span></b></span></h4></p>
+    <p><h4><span class="glyphicon glyphicon-user">&nbsp;<i><span id="artist" style="font-family:verdana">artist</span></i></span></h4></p>
+    <p><h4><span class="glyphicon glyphicon-cd">&nbsp;<span id="album" style="font-family:verdana">album</span></span></h4></p>
+    <p><h5><span class="glyphicon glyphicon-time">&nbsp;<span id="time" style="font-family:verdana">time</span></span></h5></p>
+    <p><h6><span class="glyphicon glyphicon-link">&nbsp;<span id="url" style="font-family:verdana"><a id="url_href" href="href">url</a></span></span></h6></p>
+
+    <!-- Modal login dialog -->
+    <div id="modal_login" class="modal fade" role="dialog">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">User login</h4>
+          </div>
+          <div class="modal-body">
+            <form role="form">
+              <div class="form-group">
+                <label for="username_input"><i class="fa fa-user-o" aria-hidden="true"></i></span> Username</label>
+                <input type="text" class="form-control" id="username_input" placeholder="Enter email">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button id="login_button" type="button" class="btn btn-success" data-dismiss="modal" onclick="process_login()">
+              <span class="glyphicon glyphicon-log-in"></span> Login
+            </button>
+            <button id="logout_button" type="button" class="btn btn-danger disabled" data-dismiss="modal" onclick="process_logout()">
+              <span class="glyphicon glyphicon-log-out"></span> Logout
+            </button>
+            <button type="button" class="btn btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- Cookie helper -->
+    <script src="js.cookie.js"></script>
+
+    <script>
+
+      var player;
+
+      function on_dom_loaded() {
+        player = document.getElementById("audio_player");
+        player.onended = player_onended;
+        player.oncanplay = player_oncanplay;
+
+        if (Cookies.get("state") == "play") {
+          set_play_state();
+        } else {
+          set_pause_state();
+        }
+
+        if (Cookies.get("autoplay") == "on") {
+          $("#autoplay_button").data("state", "on");
+          $("#autoplay_button").removeClass("btn-default");
+          $("#autoplay_button").addClass("btn-success");
+        }
+
+        if (Cookies.get("mobile") == "on") {
+          $("#mobile_button").data("state", "on");
+          $("#mobile_button").removeClass("btn-default");
+          $("#mobile_button").addClass("btn-success");
+        }
+
+        if (Cookies.get("player") == "off") {
+          player.controls = false;
+          $("#player_button").data("state", "off");
+          $("#player_button").removeClass("btn-success");
+          $("#player_button").addClass("btn-default");
+        }
+
+        if (Cookies.get("username") != "") {
+          $("#username_input").val(Cookies.get("username"));
+          process_login();
+        }
+
+        set_next_tune();
+      }
+
+      function player_onended() {
+        if ($("#autoplay_button").data("state") === "on") {
+          set_next_tune();
+        } else {
+          set_pause_state();
+          player.pause();
+          player.currentTime = 0;
+        }
+      }
+
+      function player_oncanplay() {
+        if ($("#play_pause_button").data("state") === "play") {
+          player.play();
+        }
+      }
+
+      function set_play_state() {
+        $("#play_pause_button").data("state", "play");
+        $("#play_pause_button").removeClass("btn-default");
+        $("#play_pause_button").addClass("btn-success");
+        $("#play_pause_icon").removeClass("glyphicon-play");
+        $("#play_pause_icon").addClass("glyphicon-pause");
+        Cookies.set('state', 'play', {expires: 365});
+      }
+
+      function set_pause_state() {
+        $("#play_pause_button").data("state", "pause");
+        $("#play_pause_button").removeClass("btn-success");
+        $("#play_pause_button").addClass("btn-default");
+        $("#play_pause_icon").removeClass("glyphicon-pause");
+        $("#play_pause_icon").addClass("glyphicon-play");
+        Cookies.set('state', 'pause', {expires: 365});
+      }
+
+      function set_next_tune() {
+        $("#artist").text("");
+        $("#album").text("");
+        $("#title").text("");
+        $("#url_href").text("");
+        $("#url_href").attr("href","");
+        $("#time").text("");
+
+        $.getJSON("/cgi-bin/next-tune", function(tune){
+          $("#artist").text(tune.artist);
+          $("#album").text(tune.album);
+          $("#title").text(tune.title);
+          $("#url_href").text(tune.url);
+          $("#url_href").attr("href",tune.url);
+          $("#time").text(tune.time + " sec");
+
+          if ($("#mobile_button").data("state") === "on") {
+            player.src = "http://" + document.location.hostname + "/cgi-bin/mobile?" + tune.filename;
+          } else {
+            player.src = tune.url;
+          }
+
+          log_event({"name":"tune_next"}, tune.url);
+        });
+      };
+
+      function play_pause_ctl() {
+          if ($("#play_pause_button").data("state") === "pause") {
+            set_play_state();
+            player.play();
+          } else {
+            set_pause_state();
+            player.pause();
+          }
+      }
+
+      function skip_ctl() {
+        log_event({"name":"tune_skip","played":parseFloat((player.currentTime/player.duration).toFixed(3))}, $("#url_href").text());
+        set_next_tune();
+      }
+
+      function autoplay_ctl() {
+        if ($("#autoplay_button").data("state") === "off") {
+          $("#autoplay_button").data("state", "on");
+          $("#autoplay_button").removeClass("btn-default");
+          $("#autoplay_button").addClass("btn-success");
+          Cookies.set('autoplay', 'on', {expires: 365});
+        } else {
+          $("#autoplay_button").data("state", "off");
+          $("#autoplay_button").removeClass("btn-success");
+          $("#autoplay_button").addClass("btn-default");
+          Cookies.set('autoplay', 'off', {expires: 365});
+        }
+      }
+
+      function mobile_ctl() {
+        if ($("#mobile_button").data("state") === "off") {
+          $("#mobile_button").data("state", "on");
+          $("#mobile_button").removeClass("btn-default");
+          $("#mobile_button").addClass("btn-success");
+          Cookies.set('mobile', 'on', {expires: 365});
+        } else {
+          $("#mobile_button").data("state", "off");
+          $("#mobile_button").removeClass("btn-success");
+          $("#mobile_button").addClass("btn-default");
+          Cookies.set('mobile', 'off', {expires: 365});
+        }
+      }
+
+      function player_ctl() {
+        player.addEventListener('ended', player_onended);
+        if ($("#player_button").data("state") === "off") {
+          player.controls = true;
+          $("#player_button").data("state", "on");
+          $("#player_button").removeClass("btn-default");
+          $("#player_button").addClass("btn-success");
+          Cookies.set('player', 'on', {expires: 365});
+        } else {
+          player.controls = false;
+          $("#player_button").data("state", "off");
+          $("#player_button").removeClass("btn-success");
+          $("#player_button").addClass("btn-default");
+          Cookies.set('player', 'off', {expires: 365});
+        }
+      }
+
+      function test_ctl() {
+        $.ajax({
+          url: "/cgi-bin/test",
+          method: "POST",
+          contentType: "application/json; charset=utf-8",
+          data: JSON.stringify({"TEST1": 1, "TEST2": "2", "TEST3": {"t1": "3", "t2": [4, 5, 6]}})
+        });
+      }
+
+      function show_login_dialog() {
+        $("#modal_login").modal();
+      }
+
+      function process_logout() {
+        $("#user_button").data("username", "");
+        $("#user_button").removeClass("btn-success");
+        $("#user_button").addClass("btn-default");
+        $("#user_button").attr("data-content", "");
+        $("#logout_button").addClass("disabled");
+        Cookies.remove('username');
+      }
+      
+      function process_login() {
+        var username = $("#username_input").val();
+        if (username != "") {
+          $("#user_button").data("username", username);
+          $("#user_button").removeClass("btn-default");
+          $("#user_button").addClass("btn-success");
+          $("#user_button").attr("data-content", username);
+          $("#logout_button").removeClass("disabled");
+          Cookies.set('username', username, {expires: 365});
+        }
+      }
+
+      function log_event(evobj, url) {
+        $.ajax({
+          url: "/cgi-bin/log-json-post",
+          method: "POST",
+          contentType: "application/json; charset=utf-8",
+          data: JSON.stringify({
+            "usrtime": new Date().toJSON(),
+            "user": $("#user_button").data("username"),
+            "event": evobj,
+            "url": url
+          })
+        })
+      }
+
+      $(on_dom_loaded);
+
+    </script>
+  </body>
+</html>
